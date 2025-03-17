@@ -2,7 +2,7 @@ import datetime
 import hashlib
 import logging
 from web3 import Web3
-from flask import Flask, request, render_template, jsonify, Response
+from flask import Flask, request, render_template, jsonify, Response, send_from_directory
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -214,14 +214,12 @@ def verify_by_hash(document_hash):
 
 
 # Flask App
-app = Flask(__name__,
-            static_folder='static',
-            template_folder='templates')
+app = Flask(__name__, static_folder="static")
 
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return send_from_directory("static", "index.html")
 
 
 @app.route("/verify-cert-id", methods=["POST"])
