@@ -302,3 +302,4 @@ def server_error(e):
 if __name__ == "__main__":
     logger.info("Starting Certificate Verification System")
     app.run(host="0.0.0.0", port=5000, debug=True)
+
