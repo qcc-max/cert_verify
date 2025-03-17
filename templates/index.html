@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Verification System</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Core color palette */
+            --primary: #00ff95;
+            --primary-dark: #00cc76;
+            --primary-light: #80ffca;
+            --primary-glow: rgba(0, 255, 149, 0.25);
+
+            /* Success/error states */
+            --success: #00ff95;
+            --success-dark: #00cc76;
+            --success-light: #d1fae5;
+            --danger: #ff3e3e;
+            --danger-dark: #cc3232;
+            --danger-light: #fee2e2;
+
+            /* Dark mode palette */
+            --bg-dark: #050a14;
+            --bg-card: #0c1524;
+            --bg-input: #060c18;
+            --bg-hover: #151f32;
+
+            /* Text colors */
+            --text-primary: #f8fafc;
+            --text-secondary: #8494ad;
+            --text-muted: #576980;
+            --text-success: #00ff95;
+            --text-error: #ff3e3e;
+
+            /* Effects */
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+            --input-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) inset;
+            --button-shadow: 0 4px 16px rgba(0, 255, 149, 0.25);
+            --button-glow: 0 0 15px rgba(0, 255, 149, 0.5);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --border-light: 1px solid rgba(255, 255, 255, 0.05);
+
+            /* Fonts */
+            --font-pixelated: 'VT323', monospace;
+            --font-sans: 'Space Grotesk', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-dark);
+            background-image:
+                radial-gradient(rgba(0, 255, 149, 0.05) 1px, transparent 1px),
+                radial-gradient(rgba(0, 255, 149, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px, 10px 10px;
+            background-position: 0 0, 10px 10px;
+            color: var(--text-primary);
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Grid overlay effect */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(0, 255, 149, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 149, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Scanline effect */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(0, 0, 0, 0) 0%,
+                rgba(0, 0, 0, 0.1) 50%,
+                rgba(0, 0, 0, 0) 100%
+            );
+            background-size: 100% 4px;
+            animation: scanlines 6s linear infinite;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0.3;
+        }
+
+        @keyframes scanlines {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 100%; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            padding: 3rem 1.5rem;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .logo {
+            font-family: var(--font-pixelated);
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary-glow);
+            position: relative;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-family: var(--font-pixelated);
+            font-size: 1.25rem;
+            margin-bottom: 3rem;
+            text-align: center;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+        }
+
+        h1 {
+            font-family: var(--font-sans);
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            background: linear-gradient(to right, var(--primary-light), var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        h2 {
+            font-family: var(--font-pixelated);
+            color: var(--primary);
+            font-weight: 400;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+        }
+
+        /* Card styling with pixelated edges */
+        .card {
+            background-color: var(--bg-card);
+            border: 2px solid var(--primary);
+            box-shadow: 4px 4px 0 var(--primary);
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+            padding: 1.5rem;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 8px 8px 0 var(--primary);
+        }
+
+        /* Pixelated corner effect */
+        .card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            background-color: var(--primary);
+            clip-path: polygon(0 0, 100% 0, 100% 100%);
+        }
+
+        .flex {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .md\:flex-row {
+            flex-direction: column;
+        }
+
+        @media (min-width: 768px) {
+            .md\:flex-row {
+                flex-direction: row;
+            }
+        }
+
+        .flex-1 {
+            flex: 1;
+        }
+
+        .gap-6 {
+            gap: 1.5rem;
+        }
+
+        /* Form elements styling */
+        label {
+            font-family: var(--font-pixelated);
+            display: block;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            background-color: var(--bg-input);
+            color: var(--text-primary);
+            border: 2px solid rgba(0, 255, 149, 0.2);
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: var(--transition-smooth);
+            box-shadow: var(--input-shadow);
+            font-family: var(--font-sans);
+        }
+
+        input[type="text"] {
+            border-radius: 0;
+        }
+
+        input[type="text"]:focus,
+        input[type="file"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-glow);
+        }
+
+        /* Custom file input styling */
+        input[type="file"] {
+            position: relative;
+            padding: 0.75rem;
+            cursor: pointer;
+            border-radius: 0;
+        }
+
+        input[type="file"]::file-selector-button {
+            background-color: var(--primary);
+            color: black;
+            font-weight: 600;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            margin-right: 1rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            font-family: var(--font-pixelated);
+            box-shadow: 2px 2px 0 black;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            background-color: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        /* Button styling */
+        button {
+            width: 100%;
+            background-color: var(--primary);
+            color: black;
+            border: none;
+            padding: 0.9rem 1.5rem;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+            font-family: var(--font-pixelated);
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+            letter-spacing: 1px;
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.5);
+            transform: translateY(-2px);
+            background-color: var(--primary-light);
+        }
+
+        /* Glitch effect */
+        button::after {
+            content: attr(data-text);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: translate(0, 0);
+            font-weight: 700;
+            letter-spacing: 1px;
+            font-family: var(--font-pixelated);
+        }
+
+        button:hover::after {
+            animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+        }
+
+        @keyframes glitch {
+            0% {
+                transform: translate(0);
+            }
+            20% {
+                transform: translate(-2px, 2px);
+            }
+            40% {
+                transform: translate(-2px, -2px);
+            }
+            60% {
+                transform: translate(2px, 2px);
+            }
+            80% {
+                transform: translate(2px, -2px);
+            }
+            100% {
+                transform: translate(0);
+            }
+        }
+
+        /* Result section styling */
+        #result-container {
+            transform: translateY(30px);
+            opacity: 0;
+            transition: var(--transition-smooth);
+            margin-top: 2.5rem;
+        }
+
+        #result-container:not(.hidden) {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Success result styling */
+        .success-message {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background-color: rgba(0, 255, 149, 0.1);
+            border: 2px solid var(--success);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .success-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            background-color: var(--success);
+            color: black;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .success-text {
+            color: var(--text-success);
+            font-weight: 600;
+            font-family: var(--font-pixelated);
+            letter-spacing: 1px;
+        }
+
+        /* Error result styling */
+        .error-message {
+            display: flex;
+            flex-direction: column;
+            background-color: rgba(255, 62, 62, 0.1);
+            border: 2px solid var(--danger);
+            padding: 1rem;
+            position: relative;
+        }
+
+        .error-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: var(--danger);
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .error-text {
+            color: var(--text-error);
+            font-weight: 600;
+            font-family: var(--font-pixelated);
+            letter-spacing: 1px;
+        }
+
+        /* Grid layout for certificate details */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            background-color: var(--bg-dark);
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            border: 2px solid rgba(0, 255, 149, 0.2);
+        }
+
+        @media (min-width: 768px) {
+            .detail-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .span-2 {
+                grid-column: span 2;
+            }
+        }
+
+        .detail-item {
+            padding: 1rem;
+            background-color: var(--bg-card);
+            border: 2px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .detail-label {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.25rem;
+            font-family: var(--font-pixelated);
+        }
+
+        .detail-value {
+            font-weight: 500;
+            color: var(--text-primary);
+            word-break: break-word;
+            font-family: var(--font-sans);
+        }
+
+        /* Block explorer link styling */
+        #block-explorer-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            font-weight: 500;
+            color: var(--primary);
+            transition: var(--transition-smooth);
+            font-family: var(--font-pixelated);
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        #block-explorer-link::before {
+            content: "[";
+            color: var(--primary);
+        }
+
+        #block-explorer-link::after {
+            content: "]";
+            color: var(--primary);
+        }
+
+        #block-explorer-link:hover {
+            color: var(--primary-light);
+            text-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        /* Loading state for buttons */
+        button.loading {
+            color: transparent;
+            pointer-events: none;
+        }
+
+        button.loading::after {
+            content: "PROCESSING...";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary);
+            color: black;
+            font-family: var(--font-pixelated);
+            font-weight: 700;
+            animation: loading-pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes loading-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Terminal blinking cursor effect for headings */
+        h1::after, h2::after {
+            content: "_";
+            display: inline-block;
+            animation: blink 1s step-end infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            from, to { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        /* Card highlight effect on hover */
+        .card:hover::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg,
+                rgba(0, 255, 149, 0) 0%,
+                rgba(0, 255, 149, 0.1) 50%,
+                rgba(0, 255, 149, 0) 100%);
+            pointer-events: none;
+            animation: scanner 2s linear infinite;
+        }
+
+        @keyframes scanner {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 2rem 1rem;
+            }
+
+            .logo {
+                font-size: 2.5rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.2rem;
+            }
+
+            .detail-item {
+                padding: 0.75rem;
+            }
+
+            button {
+                padding: 0.75rem 1.25rem;
+            }
+        }
+
+        /* Animation for valid verification */
+        #valid-result:not(.hidden) .success-icon {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 149, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 255, 149, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 149, 0); }
+        }
+
+        /* Progressive reveal animation for certificate details */
+        .detail-item {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        #valid-result:not(.hidden) .detail-item:nth-child(1) {
+            animation: fadeIn 0.3s 0.1s ease forwards;
+        }
+
+        #valid-result:not(.hidden) .detail-item:nth-child(2) {
+            animation: fadeIn 0.3s 0.2s ease forwards;
+        }
+
+        #valid-result:not(.hidden) .detail-item:nth-child(3) {
+            animation: fadeIn 0.3s 0.3s ease forwards;
+        }
+
+        #valid-result:not(.hidden) .detail-item:nth-child(4) {
+            animation: fadeIn 0.3s 0.4s ease forwards;
+        }
+
+        #valid-result:not(.hidden) .detail-item:nth-child(5) {
+            animation: fadeIn 0.3s 0.5s ease forwards;
+        }
+
+        /* CRT flicker effect */
+        .card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        @keyframes flicker {
+            0% { background: rgba(255, 255, 255, 0); }
+            1% { background: rgba(255, 255, 255, 0.05); }
+            2% { background: rgba(255, 255, 255, 0); }
+            50% { background: rgba(255, 255, 255, 0); }
+            51% { background: rgba(255, 255, 255, 0.02); }
+            52% { background: rgba(255, 255, 255, 0); }
+            90% { background: rgba(255, 255, 255, 0); }
+            91% { background: rgba(255, 255, 255, 0.03); }
+            92% { background: rgba(255, 255, 255, 0); }
+            100% { background: rgba(255, 255, 255, 0); }
+        }
+
+        .card::after {
+            animation: flicker 8s infinite;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--bg-card);
+            border: 2px solid var(--success);
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-pixelated);
+            color: var(--text-success);
+            z-index: 100;
+            transition: opacity 0.5s ease;
+            box-shadow: var(--card-shadow);
+        }
+
+        .status-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background-color: var(--success);
+            color: black;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+
+        }
+
+        .glitch-hover::after {
+            animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">CRYPTSCAN</div>
+        <div class="subtitle">BLOCKCHAIN CERTIFICATE VERIFICATION</div>
+
+        <div class="flex flex-col md:flex-row gap-6">
+            <!-- Verify by Certificate ID -->
+            <div class="card flex-1">
+                <h2>VERIFY BY ID</h2>
+
+                <div class="mb-4">
+                    <label for="cert-id">CERTIFICATE ID</label>
+                    <input type="text" id="cert-id" placeholder="Enter certificate identifier...">
+                </div>
+
+                <button id="verify-cert-id-btn" data-text="VERIFY CERTIFICATE">
+                    VERIFY CERTIFICATE
+                </button>
+            </div>
+
+            <!-- Verify by PDF Upload -->
+            <div class="card flex-1">
+                <h2>VERIFY BY PDF</h2>
+
+                <div class="mb-4">
+                    <label for="pdf-file">UPLOAD CERTIFICATE</label>
+                    <input type="file" id="pdf-file" accept=".pdf">
+                </div>
+
+                <button id="verify-pdf-btn" data-text="VERIFY PDF">
+                    VERIFY PDF
+                </button>
+            </div>
+        </div>
+
+
+
+        <!-- Result Section -->
+        <div id="result-container" class="card mt-8 hidden">
+            <h2>VERIFICATION RESULT</h2>
+
+            <div id="valid-result" class="hidden">
+                <div class="success-message">
+                    <div class="success-icon">✓</div>
+                    <p class="success-text">CERTIFICATE IS VALID AND VERIFIED ON BLOCKCHAIN</p>
+                </div>
+
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <p class="detail-label">CERTIFICATE ID</p>
+                        <p id="result-cert-id" class="detail-value"></p>
+                    </div>
+
+                    <div class="detail-item">
+                        <p class="detail-label">ISSUER</p>
+                        <p id="result-issuer" class="detail-value"></p>
+                    </div>
+
+                    <div class="detail-item">
+                        <p class="detail-label">ISSUE DATE</p>
+                        <p id="result-date" class="detail-value"></p>
+                    </div>
+
+                    <div class="detail-item">
+                        <p class="detail-label">DOCUMENT HASH</p>
+                        <p id="result-hash" class="detail-value text-xs break-all"></p>
+                    </div>
+
+                    <div class="detail-item span-2">
+                        <p class="detail-label">BLOCKCHAIN REFERENCE</p>
+                        <p id="result-block-ref" class="detail-value"></p>
+                        <a id="block-explorer-link" href="#" target="_blank">
+                            VIEW ON SEPOLIA BLOCK EXPLORER
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="invalid-result" class="hidden">
+                <div class="error-message">
+                    <div class="error-icon">✗</div>
+                    <p class="error-text">CERTIFICATE VERIFICATION FAILED</p>
+                    <p id="error-message" class="error-text"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Show loading state
+function showLoading(button) {
+    button.classList.add('loading');
+    button.disabled = true;
+}
+
+// Hide loading state
+function hideLoading(button) {
+    button.classList.remove('loading');
+    button.disabled = false;
+}
+
+// Verify by Certificate ID
+document.getElementById('verify-cert-id-btn').addEventListener('click', async () => {
+    const button = document.getElementById('verify-cert-id-btn');
+    const certId = document.getElementById('cert-id').value.trim();
+
+    if (!certId) {
+        alert('Please enter a Certificate ID');
+        return;
+    }
+
+    showLoading(button);
+
+    try {
+        const response = await fetch('/verify-cert-id', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ cert_id: certId })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        displayResult(result);
+    } catch (error) {
+        console.error('Error:', error);
+        displayError('Verification failed: ' + error.message);
+    } finally {
+        hideLoading(button);
+    }
+});
+
+// Verify by PDF Upload
+document.getElementById('verify-pdf-btn').addEventListener('click', async () => {
+    const button = document.getElementById('verify-pdf-btn');
+    const fileInput = document.getElementById('pdf-file');
+
+    if (!fileInput.files || fileInput.files.length === 0) {
+        alert('Please select a PDF file');
+        return;
+    }
+
+    showLoading(button);
+
+    const formData = new FormData();
+    formData.append('pdf_file', fileInput.files[0]);
+
+    try {
+        const response = await fetch('/verify-pdf', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        displayResult(result);
+    } catch (error) {
+        console.error('Error:', error);
+        displayError('Verification failed: ' + error.message);
+    } finally {
+        hideLoading(button);
+    }
+});
+
+// Display error message
+function displayError(message) {
+    const resultContainer = document.getElementById('result-container');
+    const validResult = document.getElementById('valid-result');
+    const invalidResult = document.getElementById('invalid-result');
+
+    resultContainer.classList.remove('hidden');
+    validResult.classList.add('hidden');
+    invalidResult.classList.remove('hidden');
+
+    document.getElementById('error-message').textContent = message;
+
+    // Scroll to result
+    resultContainer.scrollIntoView({ behavior: 'smooth' });
+}
+
+
+// Display the verification result
+function displayResult(result) {
+    const resultContainer = document.getElementById('result-container');
+    const validResult = document.getElementById('valid-result');
+    const invalidResult = document.getElementById('invalid-result');
+
+    resultContainer.classList.remove('hidden');
+    resultContainer.classList.add('fade-in');
+
+    if (result.valid) {
+        validResult.classList.remove('hidden');
+        invalidResult.classList.add('hidden');
+
+        document.getElementById('result-cert-id').textContent = result.cert_id;
+        document.getElementById('result-issuer').textContent = result.issuer;
+        document.getElementById('result-date').textContent = result.issue_date;
+        document.getElementById('result-hash').textContent = result.document_hash;
+        document.getElementById('result-block-ref').textContent = result.block_reference || 'N/A';
+
+        const blockExplorerLink = document.getElementById('block-explorer-link');
+        if (result.block_explorer_url) {
+
+        blockExplorerLink.href = result.block_explorer_url;
+            blockExplorerLink.style.display = 'inline-flex';
+        } else {
+            blockExplorerLink.style.display = 'none';
+        }
+    } else {
+        validResult.classList.add('hidden');
+        invalidResult.classList.remove('hidden');
+        document.getElementById('error-message').textContent = result.error || 'Unknown error occurred';
+    }
+
+    // Scroll to result
+    resultContainer.scrollIntoView({ behavior: 'smooth' });
+}
+
+
+// Add glitch hover effect to buttons
+const buttons = document.querySelectorAll('button:not(.demo-button)');
+buttons.forEach(button => {
+    button.addEventListener('mouseenter', () => {
+        button.classList.add('glitch-hover');
+    });
+    button.addEventListener('mouseleave', () => {
+        button.classList.remove('glitch-hover');
+    });
+});
+    </script>
+</body>
+</html>
