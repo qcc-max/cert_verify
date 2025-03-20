@@ -510,13 +510,22 @@
                    <label for="certificate">CERTIFICATE FILE (PDF)</label>
                    <input type="file" id="certificate" name="certificate" accept=".pdf" required>
                </div>
+               
                <button type="submit" data-text="UPLOAD CERTIFICATE">UPLOAD CERTIFICATE</button>
            </form>
 
            <a href="{{ url_for('admin.logout') }}"><button class="logout-btn" data-text="LOGOUT">LOGOUT</button></a>
        </div>
 
-       
+       <div class="steps card">
+           <h2>PROCESS OVERVIEW</h2>
+           <ol>
+               <li>Upload certificate PDF document</li>
+               <li>System generates cryptographic hash of the document</li>
+               <li>Certificate is registered on the Ethereum blockchain</li>
+               <li>Transaction hash is provided for verification</li>
+           </ol>
+       </div>
    </div>
 
    <script>
