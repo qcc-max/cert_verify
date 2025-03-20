@@ -163,6 +163,35 @@
             letter-spacing: 1px;
         }
 
+        /* Admin button styling */
+        .admin-btn-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        .admin-btn {
+            background-color: var(--bg-card);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            box-shadow: 4px 4px 0 var(--primary);
+            padding: 0.6rem 1.2rem;
+            font-family: var(--font-pixelated);
+            font-size: 1rem;
+            letter-spacing: 1px;
+            transition: var(--transition-smooth);
+            cursor: pointer;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 6px 6px 0 var(--primary);
+            background-color: var(--bg-hover);
+        }
+
         /* Card styling with pixelated edges */
         .card {
             background-color: var(--bg-card);
@@ -267,7 +296,7 @@
             color: black;
             font-weight: 600;
             border: none;
-            padding: 0.5rem 1.2rem;
+            padding: 0.05rem 1rem;
             margin-right: 1rem;
             cursor: pointer;
             transition: var(--transition-smooth);
@@ -286,7 +315,7 @@
             background-color: var(--primary);
             color: black;
             border: none;
-            padding: 0.9rem 1.5rem;
+            padding: 0.75rem 1.5rem;
             font-weight: 700;
             font-size: 1rem;
             cursor: pointer;
@@ -323,7 +352,7 @@
             font-family: var(--font-pixelated);
         }
 
-        button:hover::after {
+        .glitch-hover::after {
             animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
         }
 
@@ -588,6 +617,7 @@
 
             .subtitle {
                 font-size: 1rem;
+                margin-bottom: 2rem;
             }
 
             h1 {
@@ -604,6 +634,14 @@
 
             button {
                 padding: 0.75rem 1.25rem;
+            }
+            
+            .admin-btn-container {
+                position: relative;
+                top: 0;
+                right: 0;
+                text-align: center;
+                margin-bottom: 1rem;
             }
         }
 
@@ -655,6 +693,7 @@
             background: rgba(255, 255, 255, 0);
             pointer-events: none;
             z-index: 2;
+            animation: flicker 8s infinite;
         }
 
         @keyframes flicker {
@@ -668,10 +707,6 @@
             91% { background: rgba(255, 255, 255, 0.03); }
             92% { background: rgba(255, 255, 255, 0); }
             100% { background: rgba(255, 255, 255, 0); }
-        }
-
-        .card::after {
-            animation: flicker 8s infinite;
         }
 
         .connection-status {
@@ -703,15 +738,21 @@
             font-weight: bold;
         }
 
-
+        /* Margin and spacing utilities */
+        .mt-8 {
+            margin-top: 2rem;
         }
 
-        .glitch-hover::after {
-            animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+        .mb-4 {
+            margin-bottom: 1rem;
         }
     </style>
 </head>
 <body>
+    <div class="admin-btn-container">
+        <a href="/admin/login" class="admin-btn">ADMIN LOGIN</a>
+    </div>
+    
     <div class="container">
         <div class="logo">QCC CERTIFICATE VERIFICATION</div>
         <div class="subtitle">BLOCKCHAIN-ETHEREUM</div>
@@ -723,7 +764,7 @@
 
                 <div class="mb-4">
                     <label for="cert-id">CERTIFICATE ID</label>
-                    <input type="text" id="cert-id" placeholder="Enter certificate identifier...">
+                    <input type="text" id="cert-id" placeholder="Enter certificate id">
                 </div>
 
                 <button id="verify-cert-id-btn" data-text="VERIFY CERTIFICATE">
@@ -745,8 +786,6 @@
                 </button>
             </div>
         </div>
-
-
 
         <!-- Result Section -->
         <div id="result-container" class="card mt-8 hidden">
@@ -801,152 +840,155 @@
 
     <script>
         // Show loading state
-function showLoading(button) {
-    button.classList.add('loading');
-    button.disabled = true;
-}
+        function showLoading(button) {
+            button.classList.add('loading');
+            button.disabled = true;
+        }
 
-// Hide loading state
-function hideLoading(button) {
-    button.classList.remove('loading');
-    button.disabled = false;
-}
+        // Hide loading state
+        function hideLoading(button) {
+            button.classList.remove('loading');
+            button.disabled = false;
+        }
 
-// Verify by Certificate ID
-document.getElementById('verify-cert-id-btn').addEventListener('click', async () => {
-    const button = document.getElementById('verify-cert-id-btn');
-    const certId = document.getElementById('cert-id').value.trim();
+        // Verify by Certificate ID
+        document.getElementById('verify-cert-id-btn').addEventListener('click', async () => {
+            const button = document.getElementById('verify-cert-id-btn');
+            const certId = document.getElementById('cert-id').value.trim();
 
-    if (!certId) {
-        alert('Please enter a Certificate ID');
-        return;
-    }
+            if (!certId) {
+                alert('Please enter a Certificate ID');
+                return;
+            }
 
-    showLoading(button);
+            showLoading(button);
 
-    try {
-        const response = await fetch('/verify-cert-id', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ cert_id: certId })
+            try {
+                const response = await fetch('/verify-cert-id', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ cert_id: certId })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                displayResult(result);
+            } catch (error) {
+                console.error('Error:', error);
+                displayError('Verification failed: ' + error.message);
+            } finally {
+                hideLoading(button);
+            }
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        // Verify by PDF Upload
+        document.getElementById('verify-pdf-btn').addEventListener('click', async () => {
+            const button = document.getElementById('verify-pdf-btn');
+            const fileInput = document.getElementById('pdf-file');
 
-        const result = await response.json();
-        displayResult(result);
-    } catch (error) {
-        console.error('Error:', error);
-        displayError('Verification failed: ' + error.message);
-    } finally {
-        hideLoading(button);
-    }
-});
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Please select a PDF file');
+                return;
+            }
 
-// Verify by PDF Upload
-document.getElementById('verify-pdf-btn').addEventListener('click', async () => {
-    const button = document.getElementById('verify-pdf-btn');
-    const fileInput = document.getElementById('pdf-file');
+            showLoading(button);
 
-    if (!fileInput.files || fileInput.files.length === 0) {
-        alert('Please select a PDF file');
-        return;
-    }
+            const formData = new FormData();
+            formData.append('pdf_file', fileInput.files[0]);
 
-    showLoading(button);
+            try {
+                const response = await fetch('/verify-pdf', {
+                    method: 'POST',
+                    body: formData
+                });
 
-    const formData = new FormData();
-    formData.append('pdf_file', fileInput.files[0]);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-    try {
-        const response = await fetch('/verify-pdf', {
-            method: 'POST',
-            body: formData
+                const result = await response.json();
+                displayResult(result);
+            } catch (error) {
+                console.error('Error:', error);
+                displayError('Verification failed: ' + error.message);
+            } finally {
+                hideLoading(button);
+            }
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        
+            
+
+        // Display error message
+        function displayError(message) {
+            const resultContainer = document.getElementById('result-container');
+            const validResult = document.getElementById('valid-result');
+            const invalidResult = document.getElementById('invalid-result');
+
+            resultContainer.classList.remove('hidden');
+            validResult.classList.add('hidden');
+            invalidResult.classList.remove('hidden');
+
+            document.getElementById('error-message').textContent = message;
+
+            // Scroll to result
+            resultContainer.scrollIntoView({ behavior: 'smooth' });
         }
 
-        const result = await response.json();
-        displayResult(result);
-    } catch (error) {
-        console.error('Error:', error);
-        displayError('Verification failed: ' + error.message);
-    } finally {
-        hideLoading(button);
-    }
-});
 
-// Display error message
-function displayError(message) {
-    const resultContainer = document.getElementById('result-container');
-    const validResult = document.getElementById('valid-result');
-    const invalidResult = document.getElementById('invalid-result');
+        // Display the verification result
+        function displayResult(result) {
+            const resultContainer = document.getElementById('result-container');
+            const validResult = document.getElementById('valid-result');
+            const invalidResult = document.getElementById('invalid-result');
 
-    resultContainer.classList.remove('hidden');
-    validResult.classList.add('hidden');
-    invalidResult.classList.remove('hidden');
+            resultContainer.classList.remove('hidden');
+            resultContainer.classList.add('fade-in');
 
-    document.getElementById('error-message').textContent = message;
+            if (result.valid) {
+                validResult.classList.remove('hidden');
+                invalidResult.classList.add('hidden');
 
-    // Scroll to result
-    resultContainer.scrollIntoView({ behavior: 'smooth' });
-}
+                document.getElementById('result-cert-id').textContent = result.cert_id;
+                document.getElementById('result-issuer').textContent = result.issuer;
+                document.getElementById('result-date').textContent = result.issue_date;
+                document.getElementById('result-hash').textContent = result.document_hash;
+                document.getElementById('result-block-ref').textContent = result.block_reference || 'N/A';
 
+                const blockExplorerLink = document.getElementById('block-explorer-link');
+                if (result.block_explorer_url) {
 
-// Display the verification result
-function displayResult(result) {
-    const resultContainer = document.getElementById('result-container');
-    const validResult = document.getElementById('valid-result');
-    const invalidResult = document.getElementById('invalid-result');
+                blockExplorerLink.href = result.block_explorer_url;
+                    blockExplorerLink.style.display = 'inline-flex';
+                } else {
+                    blockExplorerLink.style.display = 'none';
+                }
+            } else {
+                validResult.classList.add('hidden');
+                invalidResult.classList.remove('hidden');
+                document.getElementById('error-message').textContent = result.error || 'Unknown error occurred';
+            }
 
-    resultContainer.classList.remove('hidden');
-    resultContainer.classList.add('fade-in');
-
-    if (result.valid) {
-        validResult.classList.remove('hidden');
-        invalidResult.classList.add('hidden');
-
-        document.getElementById('result-cert-id').textContent = result.cert_id;
-        document.getElementById('result-issuer').textContent = result.issuer;
-        document.getElementById('result-date').textContent = result.issue_date;
-        document.getElementById('result-hash').textContent = result.document_hash;
-        document.getElementById('result-block-ref').textContent = result.block_reference || 'N/A';
-
-        const blockExplorerLink = document.getElementById('block-explorer-link');
-        if (result.block_explorer_url) {
-
-        blockExplorerLink.href = result.block_explorer_url;
-            blockExplorerLink.style.display = 'inline-flex';
-        } else {
-            blockExplorerLink.style.display = 'none';
+            // Scroll to result
+            resultContainer.scrollIntoView({ behavior: 'smooth' });
         }
-    } else {
-        validResult.classList.add('hidden');
-        invalidResult.classList.remove('hidden');
-        document.getElementById('error-message').textContent = result.error || 'Unknown error occurred';
-    }
-
-    // Scroll to result
-    resultContainer.scrollIntoView({ behavior: 'smooth' });
-}
 
 
-// Add glitch hover effect to buttons
-const buttons = document.querySelectorAll('button:not(.demo-button)');
-buttons.forEach(button => {
-    button.addEventListener('mouseenter', () => {
-        button.classList.add('glitch-hover');
-    });
-    button.addEventListener('mouseleave', () => {
-        button.classList.remove('glitch-hover');
-    });
-});
-    </script>
-</body>
-</html>
+
+        const buttons = document.querySelectorAll('button:not(.demo-button)');
+        buttons.forEach(button => {
+            button.addEventListener('mouseenter', () => {
+                button.classList.add('glitch-hover');
+            });
+            button.addEventListener('mouseleave', () => {
+                button.classList.remove('glitch-hover');
+            });
+        });
+            </script>
+        </body>
+        </html>
